@@ -1,4 +1,8 @@
+cat > .gitignore <<'EOF'
 .env
+.env.*
+!.env.example
+
 data/
 output/
 
@@ -10,3 +14,6 @@ venv/
 
 .vscode/
 .idea/
+
+*.log
+EOF
