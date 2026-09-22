@@ -148,3 +148,37 @@ button:disabled { opacity: 0.5; cursor: default; }
   color: var(--muted);
   font-style: italic;
 }
+
+.pills:empty { display: none; }
+
+.pill-row {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  line-height: 2;
+}
+
+.pill-label {
+  color: var(--muted);
+  margin-right: 4px;
+}
+
+.pill {
+  display: inline-block;
+  padding: 2px 10px;
+  margin: 2px 3px 2px 0;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  border: 1px solid var(--panel-border);
+}
+
+.pill-category {
+  background: rgba(124, 107, 255, 0.15);
+  color: #c9c1ff;
+  border-color: rgba(124, 107, 255, 0.35);
+}
+
+.pill-tag {
+  background: rgba(79, 140, 255, 0.12);
+  color: #b9d3ff;
+  border-color: rgba(79, 140, 255, 0.3);
+}
