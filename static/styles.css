@@ -62,6 +62,25 @@ body {
   opacity: 0.75;
 }
 
+.categories {
+  margin: 22px auto 0;
+  max-width: 700px;
+  text-align: center;
+}
+
+.categories h3 {
+  margin: 0 0 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.categories .pill-row {
+  margin-top: 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
