@@ -11,38 +11,29 @@
     <header class="hero">
       <h1>Learning Brain</h1>
       <p class="subtitle">Your saved knowledge, remembered and connected</p>
-      <p class="intro">Learning Brain turns the links I save to myself into persistent, searchable memory. Ask a vague question to retrieve something you saved, or paste a new URL to fetch it, remember it, and make it searchable immediately.</p>
-      <p class="intro-helper">Ask on the left. Remember a new URL on the right.</p>
+      <p class="intro">Learning Brain turns the links I save to myself into persistent, searchable memory. Paste a new URL to fetch it, remember it, and make it searchable immediately, or ask a vague question to retrieve something you saved.</p>
+      <p class="intro-helper">Remember a new URL first. Ask second. Jump straight to a topic with the chips below.</p>
       <div class="categories">
         <h3>Knowledge categories</h3>
-        <div class="pill-row">
-          <span class="pill pill-category">AI / Machine Learning</span>
-          <span class="pill pill-category">LLMs / Foundation Models</span>
-          <span class="pill pill-category">Agents</span>
-          <span class="pill pill-category">Computer Vision</span>
-          <span class="pill pill-category">RAG / Knowledge / Memory</span>
-          <span class="pill pill-category">Robotics / Embodied AI</span>
-          <span class="pill pill-category">Research / Papers</span>
-          <span class="pill pill-category">Events / Hackathons</span>
-          <span class="pill pill-category">Data / Infrastructure</span>
-          <span class="pill pill-category">Developer Tools / GitHub</span>
-          <span class="pill pill-category">Business / Strategy</span>
-          <span class="pill pill-category">Design / Creative</span>
-          <span class="pill pill-category">Other</span>
+        <div class="pill-row category-nav" id="categoryNav">
+          <button type="button" class="pill pill-category cat-chip" data-topic="AI / Machine Learning">AI / Machine Learning</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="LLMs / Foundation Models">LLMs / Foundation Models</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Agents">Agents</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Computer Vision">Computer Vision</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="RAG / Knowledge / Memory">RAG / Knowledge / Memory</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Robotics / Embodied AI">Robotics / Embodied AI</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Research / Papers">Research / Papers</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Events / Hackathons">Events / Hackathons</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Data / Infrastructure">Data / Infrastructure</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Developer Tools / GitHub">Developer Tools / GitHub</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Business / Strategy">Business / Strategy</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Design / Creative">Design / Creative</button>
+          <button type="button" class="pill pill-category cat-chip" data-topic="Other">Other</button>
         </div>
       </div>
     </header>
 
     <main class="grid">
-      <section class="card chat-card">
-        <h2>Ask</h2>
-        <textarea id="question" rows="3" placeholder="What was that LinkedIn post I saved about computer vision?"></textarea>
-        <button id="askBtn">Ask</button>
-        <div id="answer" class="answer"></div>
-        <div id="answerMeta" class="pills"></div>
-        <div id="usedToAnswer" class="used-to-answer"></div>
-      </section>
-
       <section class="card remember-card">
         <h2>Remember a URL</h2>
         <input id="url" type="text" placeholder="https://example.com/article">
@@ -50,6 +41,15 @@
         <div id="rememberStatus" class="status"></div>
         <div id="rememberSummary" class="remember-summary"></div>
         <div id="rememberMeta" class="pills"></div>
+      </section>
+
+      <section class="card chat-card">
+        <h2>Ask</h2>
+        <textarea id="question" rows="3" placeholder="What was that LinkedIn post I saved about computer vision?"></textarea>
+        <button id="askBtn">Ask</button>
+        <div id="answer" class="answer"></div>
+        <div id="answerMeta" class="pills"></div>
+        <div id="usedToAnswer" class="used-to-answer"></div>
       </section>
     </main>
 
@@ -62,16 +62,16 @@
           <button class="view-btn" data-view="people">People</button>
         </div>
       </div>
-      <div id="topicsView" class="view-panel card-grid"></div>
+      <div id="topicsView" class="view-panel topic-sections"></div>
       <div id="sourcesView" class="view-panel card-grid" style="display:none"></div>
       <div id="peopleView" class="view-panel card-grid" style="display:none"></div>
     </section>
   </div>
 
   <div id="detailOverlay" class="overlay" style="display:none">
-    <div class="drawer">
+    <div class="modal" role="dialog" aria-modal="true">
       <button id="closeDrawer" class="close-btn" aria-label="Close">&times;</button>
-      <div id="drawerContent"></div>
+      <div id="drawerContent" class="modal-content"></div>
     </div>
   </div>
 

@@ -7,6 +7,7 @@ Reuses the existing agent (src/agent.py) and Cognee Cloud connection
 import json
 import re
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
 
 SRC_DIR = Path(__file__).parent / "src"
@@ -38,6 +39,10 @@ app = FastAPI(lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 DASHBOARD_INDEX_PATH = Path(__file__).parent / "output" / "dashboard_index.json"
+PREVIEW_BACKFILL_PATH = Path(__file__).parent / "output" / "preview_backfill.json"
+# Soft-delete list only: hiding a resource never touches Cognee, the WhatsApp
+# archive, Bright Data content, ingestion history or dashboard_index.json.
+DELETED_PATH = Path(__file__).parent / "output" / "deleted_resources.json"
 
 
 class AskRequest(BaseModel):
@@ -46,6 +51,12 @@ class AskRequest(BaseModel):
 
 class RememberRequest(BaseModel):
     url: str
+
+
+class DeleteRequest(BaseModel):
+    id: str | None = None
+    url: str | None = None
+    resolved_url: str | None = None
 
 
 @app.get("/")
@@ -115,23 +126,91 @@ def build_matched_answer(cards):
     return "\n".join(lines)
 
 
+def load_deleted():
+    """The soft-delete list: {"deleted": [{id, url, deleted_at}, ...]}.
+    Missing or unreadable file means nothing is hidden."""
+    if DELETED_PATH.exists():
+        try:
+            with DELETED_PATH.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict) and isinstance(data.get("deleted"), list):
+                return data
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {"deleted": []}
+
+
+def save_deleted(data):
+    DELETED_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with DELETED_PATH.open("w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+def deleted_keys():
+    """(ids, urls) sets used to hide resources everywhere in the UI."""
+    ids, urls = set(), set()
+    for entry in load_deleted()["deleted"]:
+        if entry.get("id"):
+            ids.add(entry["id"])
+        if entry.get("url"):
+            urls.add(entry["url"])
+        if entry.get("resolved_url"):
+            urls.add(entry["resolved_url"])
+    return ids, urls
+
+
+def is_deleted(record, ids, urls):
+    if record.get("id") and record["id"] in ids:
+        return True
+    return bool(
+        (record.get("url") and record["url"] in urls)
+        or (record.get("resolved_url") and record["resolved_url"] in urls)
+    )
+
+
+def load_preview_backfill():
+    """url -> preview_backfill.py's per-URL record (see src/backfill_previews.py).
+    Read-only; that script owns writing this file."""
+    if PREVIEW_BACKFILL_PATH.exists():
+        with PREVIEW_BACKFILL_PATH.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+
+def apply_preview(record, manual, backfill_by_url):
+    """Attach preview_image/preview_title/preview_description/preview_site_name/
+    resolved_url onto record, preferring: 1) the resource's own existing
+    preview metadata (manual_resources.json, set at save time), 2) the
+    historical preview_backfill.json, 3) nothing (renders as a text-only
+    card)."""
+    backfill = backfill_by_url.get(record["url"]) or backfill_by_url.get(manual.get("resolved_url") or "") or {}
+    source = manual if (manual.get("preview_image") or manual.get("preview_title")) else (
+        backfill if backfill.get("status") == "success" else {}
+    )
+    record["preview_image"] = source.get("preview_image")
+    record["preview_title"] = source.get("preview_title")
+    record["preview_description"] = source.get("preview_description")
+    record["preview_site_name"] = source.get("preview_site_name")
+    record["resolved_url"] = source.get("resolved_url") or manual.get("resolved_url")
+    return record
+
+
 def load_merged_resources():
-    """Same enrichment /api/resources applies: dashboard_index.json (owned by
-    the indexing job, read-only here) overlaid with manual_resources.json's
-    preview fields."""
+    """dashboard_index.json (owned by the indexing job, read-only here)
+    overlaid with manual_resources.json's own preview fields, falling back to
+    the historical preview_backfill.json when neither has preview data yet."""
     resources = []
     if DASHBOARD_INDEX_PATH.exists():
         with DASHBOARD_INDEX_PATH.open("r", encoding="utf-8") as f:
             resources = json.load(f)
     manual_by_url = {r["url"]: r for r in load_manual_resources()}
+    backfill_by_url = load_preview_backfill()
     for r in resources:
-        manual = manual_by_url.get(r["url"], {})
-        r["preview_image"] = manual.get("preview_image")
-        r["preview_title"] = manual.get("preview_title")
-        r["preview_description"] = manual.get("preview_description")
-        r["preview_site_name"] = manual.get("preview_site_name")
-        r["resolved_url"] = manual.get("resolved_url")
-    return resources
+        apply_preview(r, manual_by_url.get(r["url"], {}), backfill_by_url)
+    # Single choke point for soft delete: every UI surface (dashboard, Sources,
+    # People, Ask cards, detail modal) reads through here or build_resource_lookup.
+    ids, urls = deleted_keys()
+    return [r for r in resources if not is_deleted(r, ids, urls)]
 
 
 def build_resource_lookup():
@@ -142,8 +221,15 @@ def build_resource_lookup():
         lookup[r["url"]] = r
         if r.get("resolved_url"):
             lookup.setdefault(r["resolved_url"], r)
+    manual_by_url = {r["url"]: r for r in load_manual_resources()}
+    backfill_by_url = load_preview_backfill()
+    ids, urls = deleted_keys()
     for r in load_manual_resources():
-        lookup.setdefault(r["url"], r)
+        if is_deleted(r, ids, urls):
+            continue
+        if r["url"] not in lookup:
+            apply_preview(r, manual_by_url.get(r["url"], {}), backfill_by_url)
+            lookup[r["url"]] = r
         if r.get("resolved_url"):
             lookup.setdefault(r["resolved_url"], r)
     return lookup
@@ -216,6 +302,9 @@ async def ask(req: AskRequest):
             req.question, query_type=cognee.SearchType.CHUNKS, datasets=[DATASET_NAME], top_k=5
         )
         resource_lookup = build_resource_lookup()
+        # Cognee memory is deliberately left intact by soft delete, so hidden
+        # resources can still come back as chunks -- drop their cards here.
+        del_ids, del_urls = deleted_keys()
         seen_urls = set()
         for item in recall_results:
             text = item.get("text")
@@ -224,6 +313,8 @@ async def ask(req: AskRequest):
             tags.extend(x for x in t if x not in tags)
 
             card = extract_card(text, resource_lookup)
+            if card and is_deleted({"url": card["url"]}, del_ids, del_urls):
+                card = None
             if card and card["url"] not in seen_urls and len(used_to_answer) < 3:
                 seen_urls.add(card["url"])
                 used_to_answer.append(card)
@@ -274,6 +365,43 @@ async def remember(req: RememberRequest):
 @app.get("/api/resources")
 async def api_resources():
     return load_merged_resources()
+
+
+@app.post("/api/resources/delete")
+async def api_delete_resource(req: DeleteRequest):
+    """Soft delete only: records the id/url in output/deleted_resources.json so
+    the UI hides it. Nothing is removed from Cognee, the WhatsApp archive,
+    Bright Data content, ingestion history or dashboard_index.json."""
+    if not req.id and not req.url:
+        return {"status": "error", "message": "An id or url is required."}
+    data = load_deleted()
+    already = any(
+        (req.id and e.get("id") == req.id) or (req.url and e.get("url") == req.url)
+        for e in data["deleted"]
+    )
+    if not already:
+        data["deleted"].append({
+            "id": req.id,
+            "url": req.url,
+            "resolved_url": req.resolved_url,
+            "deleted_at": datetime.now(timezone.utc).isoformat(),
+        })
+        save_deleted(data)
+    return {"status": "success", "hidden": len(data["deleted"])}
+
+
+@app.post("/api/resources/restore")
+async def api_restore_resource(req: DeleteRequest):
+    """Undo for the most recent removal -- drops the matching soft-delete entry."""
+    data = load_deleted()
+    before = len(data["deleted"])
+    data["deleted"] = [
+        e for e in data["deleted"]
+        if not ((req.id and e.get("id") == req.id) or (req.url and e.get("url") == req.url))
+    ]
+    if len(data["deleted"]) != before:
+        save_deleted(data)
+    return {"status": "success", "hidden": len(data["deleted"])}
 
 
 if __name__ == "__main__":
