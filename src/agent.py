@@ -28,7 +28,8 @@ SYSTEM_PROMPT = (
     "You are Flavia's personal learning brain: an assistant over her saved "
     "learning resources (articles, papers, LinkedIn posts, GitHub repos, talks). "
     "Answer concisely. When recalling saved material, include the original URL "
-    "whenever it is available in memory."
+    "whenever it is available in memory. Never output <thinking> tags or any "
+    "internal reasoning -- respond only with the final answer, directly."
 )
 
 DEMO_QUERIES = [

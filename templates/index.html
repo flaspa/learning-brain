@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Learning Brain</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="page">
+    <header class="hero">
+      <h1>Learning Brain</h1>
+      <p class="subtitle">Your saved knowledge, remembered and connected</p>
+    </header>
+
+    <main class="grid">
+      <section class="card chat-card">
+        <h2>Ask</h2>
+        <textarea id="question" rows="3" placeholder="What was that LinkedIn post I saved about computer vision?"></textarea>
+        <button id="askBtn">Ask</button>
+        <div id="answer" class="answer"></div>
+      </section>
+
+      <section class="card remember-card">
+        <h2>Remember a URL</h2>
+        <input id="url" type="text" placeholder="https://example.com/article">
+        <button id="rememberBtn">Remember</button>
+        <div id="rememberStatus" class="status"></div>
+      </section>
+    </main>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
