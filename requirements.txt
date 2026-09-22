@@ -2,3 +2,5 @@ python-dotenv
 requests
 fastapi
 uvicorn
+cognee>=1.6.0
+strands-agents>=1.56.0
