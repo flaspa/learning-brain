@@ -46,6 +46,22 @@ body {
   font-size: 1.05rem;
 }
 
+.intro {
+  color: var(--muted);
+  margin: 18px auto 0;
+  max-width: 560px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.intro-helper {
+  color: var(--muted);
+  margin: 8px auto 0;
+  max-width: 560px;
+  font-size: 0.82rem;
+  opacity: 0.75;
+}
+
 .grid {
   display: grid;
   grid-template-columns: 1.3fr 1fr;
