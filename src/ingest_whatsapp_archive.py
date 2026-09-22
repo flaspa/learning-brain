@@ -27,6 +27,7 @@ from pathlib import Path
 import cognee
 import requests
 
+from categorize import categorize_resource
 from cognee_memory import DATASET_NAME, connect_cognee
 from sample_resources import categorize, get_domain
 from test_brightdata import fetch_url, load_credentials
@@ -57,9 +58,10 @@ def save_progress(progress):
         json.dump(progress, f, ensure_ascii=False, indent=2)
 
 
-def build_memory_text(record, fetched_text):
+async def build_memory_text(record, fetched_text):
     domain = get_domain(record["url"])
     category = categorize(domain)
+    note = record.get("note_before") or record.get("note_after")
     raw_message = (record.get("raw_message") or "").strip()
     if len(raw_message) > RAW_MESSAGE_CHAR_LIMIT:
         raw_message = raw_message[:RAW_MESSAGE_CHAR_LIMIT] + "..."
@@ -67,6 +69,8 @@ def build_memory_text(record, fetched_text):
     body = html_to_text(fetched_text)
     if len(body) > FETCHED_TEXT_CHAR_LIMIT:
         body = body[:FETCHED_TEXT_CHAR_LIMIT] + "..."
+
+    categories, tags = await categorize_resource(url=record["url"], domain=domain, note=note, content=body)
 
     return "\n".join([
         f"URL: {record['url']}",
@@ -76,6 +80,8 @@ def build_memory_text(record, fetched_text):
         f"Source: {record.get('source')}",
         f"Domain: {domain}",
         f"Category: {category}",
+        f"Categories: {', '.join(categories)}",
+        f"Tags: {', '.join(tags) if tags else '(none)'}",
         f"Raw message: {raw_message or '(none)'}",
         "Content:",
         body,
@@ -89,7 +95,7 @@ async def ingest_one(session, api_key, zone, record):
     if fields["fetch_status"] != "success":
         return "failed", fields.get("fetch_error") or fields["fetch_status"]
 
-    memory_text = build_memory_text(record, fields["fetched_text"])
+    memory_text = await build_memory_text(record, fields["fetched_text"])
     try:
         await cognee.remember(memory_text, dataset_name=DATASET_NAME)
     except Exception as exc:

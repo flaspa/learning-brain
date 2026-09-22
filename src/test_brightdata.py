@@ -21,7 +21,7 @@ OUTPUT_PATH = Path("output/brightdata_test.json")
 BRIGHTDATA_ENDPOINT = "https://api.brightdata.com/request"
 MAX_URLS = 5
 CONSOLE_PREVIEW_CHARS = 200
-REQUEST_TIMEOUT_SECONDS = 30
+REQUEST_TIMEOUT_SECONDS = 60
 
 
 def load_credentials():
