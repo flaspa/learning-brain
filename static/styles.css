@@ -201,3 +201,303 @@ button:disabled { opacity: 0.5; cursor: default; }
   color: #b9d3ff;
   border-color: rgba(79, 140, 255, 0.3);
 }
+
+/* Used-to-answer mini cards */
+.used-to-answer:empty { display: none; }
+.used-to-answer {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--panel-border);
+}
+.used-to-answer .uta-label {
+  font-size: 0.75rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.remember-summary:empty { display: none; }
+.remember-summary {
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+/* Dashboard */
+.dashboard {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--panel-border);
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.dashboard-header h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--text);
+}
+
+.view-switcher {
+  display: flex;
+  gap: 6px;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.view-btn {
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 7px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.view-btn.active {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: white;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.dash-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.dash-card h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.dash-card .dash-count {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.dash-card .dash-sub {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.dash-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dash-card li {
+  padding: 6px 0;
+  border-top: 1px solid var(--panel-border);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.dash-card li:first-child { border-top: none; }
+.dash-card li:hover { color: var(--accent-2); }
+
+.empty-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 24px;
+}
+
+/* Detail overlay/drawer */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: flex-end;
+  z-index: 50;
+}
+
+.drawer {
+  width: min(420px, 92vw);
+  height: 100%;
+  background: var(--panel);
+  border-left: 1px solid var(--panel-border);
+  padding: 28px 22px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.drawer h3 {
+  margin: 0 24px 4px 0;
+  font-size: 1.15rem;
+}
+
+.drawer .drawer-sub {
+  color: var(--muted);
+  font-size: 0.8rem;
+  margin-bottom: 14px;
+}
+
+.drawer .drawer-summary {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.drawer .drawer-open {
+  display: inline-block;
+  margin-top: 16px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: white;
+  padding: 8px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* Topic cards: subtopics + View all */
+.subtopic-list {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.subtopic-list li {
+  padding: 3px 0;
+}
+
+.subtopic-list li::before {
+  content: "\2022";
+  color: var(--accent-2);
+  margin-right: 6px;
+}
+
+.view-all-btn {
+  margin: 4px 0 0;
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--accent-2);
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.view-all-btn:hover {
+  border-color: var(--accent-2);
+}
+
+/* Topic detail list (inside the existing drawer) */
+.topic-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Rich-link cards (WhatsApp-style): vertical stack, large image on top when
+   a real preview_image exists, text-only when it doesn't -- never a small
+   side thumbnail or a favicon standing in as the article preview. */
+.rich-card {
+  padding-bottom: 18px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.rich-card:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.rich-card-image-link {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.rich-card-image {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
+  border: 1px solid var(--panel-border);
+  background: #0f1220;
+}
+
+.rich-card-body {
+  min-width: 0;
+}
+
+.topic-list-title {
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.98rem;
+  text-decoration: none;
+  display: block;
+}
+
+.topic-list-title:hover {
+  color: var(--accent-2);
+}
+
+.topic-list-summary {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.rich-card-meta {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+
+/* Ask result cards: same rich-card look, slightly tighter spacing/image. */
+.used-to-answer .rich-card-compact {
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+}
+
+.used-to-answer .rich-card-compact .rich-card-image {
+  aspect-ratio: 2 / 1;
+}

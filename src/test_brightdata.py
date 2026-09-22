@@ -131,10 +131,15 @@ def fetch_url(session, api_key, zone, url):
             "fetch_error": f"target page returned HTTP {target_status}",
         }, False
 
+    # Bright Data's Web Unlocker follows redirects itself and reports where it
+    # landed via this header -- the existing fetch already resolves short
+    # links/tracking URLs to the final page; we just weren't reading it.
+    resolved_url = headers.get("x-unblocker-redirected-to") or headers.get("X-Unblocker-Redirected-To") or url
+
     return {
         "fetch_status": "success",
         "http_status": target_status,
-        "resolved_url": url,
+        "resolved_url": resolved_url,
         "content_type": content_type,
         "fetched_text": body,
         "fetch_error": None,

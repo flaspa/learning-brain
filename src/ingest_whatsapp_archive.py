@@ -27,6 +27,7 @@ from pathlib import Path
 import cognee
 import requests
 
+from agent import extract_title
 from categorize import categorize_resource
 from cognee_memory import DATASET_NAME, connect_cognee
 from sample_resources import categorize, get_domain
@@ -66,22 +67,28 @@ async def build_memory_text(record, fetched_text):
     if len(raw_message) > RAW_MESSAGE_CHAR_LIMIT:
         raw_message = raw_message[:RAW_MESSAGE_CHAR_LIMIT] + "..."
 
+    title = extract_title(fetched_text)
     body = html_to_text(fetched_text)
     if len(body) > FETCHED_TEXT_CHAR_LIMIT:
         body = body[:FETCHED_TEXT_CHAR_LIMIT] + "..."
 
-    categories, tags = await categorize_resource(url=record["url"], domain=domain, note=note, content=body)
+    categories, tags, author, summary = await categorize_resource(
+        title=title, url=record["url"], domain=domain, note=note, content=body
+    )
 
     return "\n".join([
         f"URL: {record['url']}",
         f"Timestamp: {record.get('timestamp')}",
+        f"Title: {title or '(unknown)'}",
         f"Note before: {record.get('note_before') or '(none)'}",
         f"Note after: {record.get('note_after') or '(none)'}",
         f"Source: {record.get('source')}",
         f"Domain: {domain}",
         f"Category: {category}",
+        f"Author: {author or '(unknown)'}",
         f"Categories: {', '.join(categories)}",
         f"Tags: {', '.join(tags) if tags else '(none)'}",
+        f"Summary: {summary or '(none)'}",
         f"Raw message: {raw_message or '(none)'}",
         "Content:",
         body,

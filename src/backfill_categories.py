@@ -74,7 +74,9 @@ async def backfill_whatsapp(limit, backfill_progress):
 
         note = record.get("note_before") or record.get("note_after")
         domain = get_domain(record["url"])
-        categories, tags = await categorize_resource(url=record["url"], domain=domain, note=note, content="")
+        categories, tags, author, _summary = await categorize_resource(
+            url=record["url"], domain=domain, note=note, content=""
+        )
 
         doc = build_backfill_doc(
             record["url"], categories, tags,
@@ -82,7 +84,7 @@ async def backfill_whatsapp(limit, backfill_progress):
         )
         await cognee.remember(doc, dataset_name=DATASET_NAME)
 
-        backfill_progress[key] = {"url": record["url"], "categories": categories, "tags": tags}
+        backfill_progress[key] = {"url": record["url"], "categories": categories, "tags": tags, "author": author}
         save_json(BACKFILL_PROGRESS_PATH, backfill_progress)
         print(f"  [whatsapp:{record_id}] {record['url']} -> {categories} {tags}")
         done += 1
@@ -101,7 +103,7 @@ async def backfill_manual(limit, backfill_progress):
             continue
 
         domain = get_domain(record["url"])
-        categories, tags = await categorize_resource(
+        categories, tags, author, _summary = await categorize_resource(
             title=record.get("title"), url=record["url"], domain=domain, content="",
         )
 
@@ -113,9 +115,11 @@ async def backfill_manual(limit, backfill_progress):
 
         record["categories"] = categories
         record["tags"] = tags
+        if author and not record.get("author"):
+            record["author"] = author
         changed = True
 
-        backfill_progress[key] = {"url": record["url"], "categories": categories, "tags": tags}
+        backfill_progress[key] = {"url": record["url"], "categories": categories, "tags": tags, "author": author}
         save_json(BACKFILL_PROGRESS_PATH, backfill_progress)
         print(f"  [manual:{record['id']}] {record['url']} -> {categories} {tags}")
         done += 1
